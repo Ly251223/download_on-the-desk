@@ -1,0 +1,1016 @@
+
+
+System identification is the process of using data, rather than physics, to develop a model
+of a dynamic system. We are trying to identify the underlying dynamics that produce the observed
+system behavior.
+
+And in this series, we're going to look at different ways we can
+approach system identification for linear systems, nonlinear
+systems, and for online and recursive system identification.
+
+But before we get into
+all of those specifics--
+
+in this video, let's just take
+a step back and figure out,
+
+more generally, what
+system identification is
+
+and where it fits in
+the bigger picture.
+
+I'm Brian, and welcome
+to a Matlab Tech Talk.
+
+Let's start by talking a
+little bit about models.
+
+In general, a model is a
+simplified representation
+
+of the real system.
+
+And the idea is that
+you develop something
+
+that mimics the essential
+features of the system you're
+
+interested in and then
+leaves out everything else.
+
+And having a simplified
+representation
+
+has a lot of benefits.
+
+For example, if you're
+designing a controller,
+
+we have lots of
+tools available that
+
+can help us find the
+optimal solution if we have
+
+a mathematical representation
+of the system, especially
+
+a linear representation.
+
+We can also combine the
+predictions from simple models
+
+with sensor measurements
+to improve state estimation
+
+or to predict when
+maintenance needs to occur.
+
+And we can use models to
+perform formal analysis in order
+
+to guarantee
+performance or safety.
+
+We can use models to
+replace physical systems
+
+and environments in
+testing by simulating them.
+
+And we can reduce those
+models to even more simplified
+
+versions to speed up
+those simulations.
+
+And there are many
+other uses as well.
+
+It's all part of the larger
+concept of model-based design.
+
+And models come in all
+sorts of shapes and sizes.
+
+But no matter what,
+in order to be useful,
+
+a model should adequately
+capture the essential features
+
+of the system.
+
+Now, what is essential?
+
+Well that depends on what you
+are developing your model for,
+
+and it requires some amount
+of understanding of what
+
+you're trying to accomplish.
+
+For example, if you want to
+understand how much fuel is
+
+needed for a particular
+rocket launch,
+
+then the model of the rocket
+should take into account
+
+the dynamics that play
+a significant part
+
+in determining this.
+
+These are things like the mass,
+the thrust, the aerodynamics,
+
+the atmosphere and
+gravity, and information
+
+about the trajectory.
+
+You probably don't need to
+model things like vibration
+
+through the internal structure.
+
+It's not essential
+for that question.
+
+However, vibrations do
+play an important role
+
+in material fatigue or sensor
+disturbances or ride quality.
+
+And so, if your goal is to
+understand those things,
+
+then your model should
+include those dynamics.
+
+All right, so what is
+represented in a model
+
+is situation dependent.
+
+But how do we represent
+that information?
+
+That's the next question.
+
+And in general, a model is
+composed of two main parts.
+
+There is the structure, and
+there are the parameters.
+
+And let me explain
+this with an example.
+
+Let's take this physical
+system with a mass, 2 pulleys,
+
+and a spring.
+
+And I want a model
+that can predict
+
+the motion of the mass
+given an input force.
+
+And I could
+represent this system
+
+with this model, which is
+an ordinary differential
+
+equation where f is the input
+force and x1 is the output.
+
+This model has a structure which
+is made up of these operators,
+
+and it has parameters
+which are the values that
+
+populate this structure.
+
+And in this case, they are
+the physical quantities
+
+of mass, radius, inertia,
+and spring constant.
+
+And this is a linear model.
+
+So it's not going to capture
+the nonlinear dynamics,
+
+and it doesn't
+capture other things
+
+like disturbances and whatnot.
+
+But it has the
+essential dynamics
+
+that I need to predict the
+general motion of the mass
+
+to some level of accuracy.
+
+Now there is more than one
+way to structure a model.
+
+For example, I could
+choose to model this system
+
+with a slightly different
+differential equation.
+
+Here, if I don't know the
+specific physical parameters,
+
+I could choose a more general
+second order differential
+
+equation with the
+parameters A, B, C, and D.
+
+And even though these
+two models can represent
+
+the exact same dynamics,
+they are represented
+
+slightly differently.
+
+Now we're not limited to
+just differential equations.
+
+We could choose any number
+of other structures,
+
+like process models
+with time delay.
+
+Or non-parametric models, like
+frequency response models.
+
+Or even something more
+abstract, like neural networks,
+
+and so on.
+
+But no matter what
+the structure is,
+
+the model would
+still have to capture
+
+the essential underlying
+dynamics of the real system
+
+in order to be useful.
+
+So how do we create a model
+that can capture those dynamics?
+
+Well, that depends
+on how much you
+
+know about your real system.
+
+If you know all of the essential
+features of your system
+
+and how they contribute
+to its dynamic behavior,
+
+then you can take a white box
+approach to creating a model.
+
+That is, since you know
+all of the dynamics,
+
+you can write the
+model directly,
+
+using first principles
+and physics.
+
+Basically, you're able to look
+into the box that represents
+
+the system and see everything.
+
+In this case, you're probably
+more likely to write out
+
+differential
+equations than, say,
+
+a neural network, since
+they more closely represent
+
+the way people think about the
+dynamics of physical systems.
+
+And this is essentially
+what was done
+
+to develop this second
+order differential equation
+
+for the mass and pulley system.
+
+I knew there were two
+pulleys, a mass and a spring,
+
+and I knew how they
+all interacted.
+
+So I could write the
+equations of motion.
+
+However, another
+white box method
+
+would be to use this
+knowledge of the system
+
+to model each of
+these components,
+
+not as differential
+equations directly,
+
+but with a physical modeling
+program, like Simscape.
+
+But however you do it, the
+key to the white box method
+
+is that you have access
+to and an understanding
+
+of the essential
+dynamics of your system.
+
+On the opposite
+side of the spectrum
+
+is the black box method.
+
+This is where you have no
+idea what's inside the box,
+
+because you can't see into it.
+
+And therefore, you can't
+use first principles
+
+or physical modeling programs to
+capture the essential dynamics.
+
+You might not even know what
+the essential dynamics are.
+
+So how can we get something out
+of this level of understanding,
+
+where we can't write
+the equations directly?
+
+Well, this is where system
+identification comes into play.
+
+At a high level,
+it works like this.
+
+Let's say we have a system
+with unknown dynamics.
+
+It's a black box.
+
+And we want to
+build a model of it,
+
+so we can make some
+kind of prediction
+
+of how this system will
+behave in the future.
+
+And here's a way to
+approach this problem.
+
+We can excite the system
+with input signals, which
+
+in turn affect the output.
+
+So there is some relationship
+between the input
+
+and the output data.
+
+And assuming we
+were able to excite
+
+all of the essential
+dynamics of this system,
+
+we could use that data to
+learn a mathematical model that
+
+mimics the observed
+relationship.
+
+To do this, we have to
+choose a model structure
+
+that we think can represent
+the behavior we see,
+
+and then we have to fit
+that model to the data
+
+by selecting the
+best parameters.
+
+Now, as a quick side
+note here, there's
+
+an important difference between
+modeling the system dynamics
+
+and just doing curve fitting.
+
+And to highlight
+that difference,
+
+let's use this data to predict
+what the system output will
+
+be in the future.
+
+And one way to do this is to
+fit a curve to the output data
+
+and extrapolate that
+curve out into the future.
+
+For this example,
+the output data
+
+looks like an exponential
+that asymptotically
+
+approaches some value.
+
+So we could pick the structure
+of the curve equation
+
+to be something like this.
+
+And then fit it to the data
+by adjusting the parameters.
+
+Now, this curve will allow
+us to predict future values.
+
+And it does so with
+an equation that
+
+has a structure and parameters,
+just like we talked about.
+
+However, curve fitting
+doesn't describe
+
+the underlying mechanisms
+that created the data.
+
+It just describes the
+particular sequence of data.
+
+For example, a curve
+fit won't give us
+
+any prediction of
+what the output would
+
+be if we initialize the
+system in a different state,
+
+or if we give it different
+input signals altogether.
+
+But with system
+identification, we
+
+are taking advantage of the
+correlation between the points
+
+in the data to fit a
+dynamic model to it.
+
+That is, with dynamic
+systems, the output at time t
+
+is a function of the inputs
+plus previous system values.
+
+And so we can build a model
+whose output isn't just
+
+a function of time,
+but is, in some way,
+
+also a function of the
+previous system values.
+
+In this case, we could choose
+a first order differential
+
+equation for the
+structure of the model,
+
+and then choose parameters
+and B to fit it to the data.
+
+Now the solution
+to this equation
+
+is the exponential
+we found earlier.
+
+So they produce the same curve.
+
+But now we have a
+model that we can
+
+use to predict what
+the data would look
+
+like from different
+starting conditions
+
+and with different inputs,
+which is a lot more powerful
+
+than just curve fitting.
+
+So if you take anything
+away from this video,
+
+it should be that, with
+system identification,
+
+we can walk away with a better
+understanding of the function
+
+itself, the model of the system,
+and not just its results.
+
+Let me show you
+what this could look
+
+like in a really simple case.
+
+In this simulation model, I have
+a system with unknown dynamics.
+
+And I want to try to
+find another model that
+
+can capture the essential
+dynamics in a way that
+
+can be used for prediction.
+
+Again, I can excite it
+with, say, a step input,
+
+and then record the response.
+
+So given this particular
+input, the system
+
+produces this output.
+
+Now, I want to fit a
+model to this data.
+
+And since it's a single
+input, single output system,
+
+and it doesn't look like there's
+much delay in the system,
+
+I'm going to just choose
+a transfer function
+
+as the structure.
+
+Now as far as how many
+poles and zeros to use?
+
+Well, I can get a first guess
+of it by looking at the data.
+
+Since there's a
+slight overshoot,
+
+I know that this is at
+least a second order system.
+
+And since the steady
+state error is about zero,
+
+then the zeroth order
+terms will be equal.
+
+So I'm going to try to
+fit this transfer function
+
+with two poles and no zeros.
+
+So G of s is my candidate model,
+and the tunable parameters
+
+are the damping ratio zeta
+and natural frequency omega.
+
+And let me just choose
+some random values.
+
+And then I can
+simulate the response
+
+to the same step input.
+
+Now clearly, this
+behavior of the model
+
+doesn't match the
+real system at all.
+
+But at this point, I
+can tune the parameters
+
+by manually moving the damping
+ratio until the overshoot is
+
+about the same.
+
+And then I can adjust
+the natural frequency
+
+until the curve is about
+as close as I can get it.
+
+There we go--
+something like that.
+
+Now I was able to tune
+this model by hand,
+
+because it was so simple.
+
+But in most cases,
+there's multiple inputs
+
+and multiple outputs,
+and there's just
+
+lots of tunable parameters.
+
+So it makes more
+sense to fit the model
+
+with some kind of
+numerical method
+
+that's adjusting the
+parameters automatically
+
+to minimize a cost function.
+
+And just to show you
+what this looks like,
+
+let me identify this
+really simple system
+
+with the transfer function
+estimator function in Matlab.
+
+And that's part of the system
+identification toolbox.
+
+I've previously saved off
+the step input and step
+
+response of the real system,
+both at 10 millisecond sample
+
+times.
+
+And now I can use that data
+to fit to a transfer function
+
+with two poles and no zeros,
+just like we had before.
+
+And this is what
+it came up with.
+
+And you can see,
+it's actually pretty
+
+close to what I did by hand,
+so that wasn't too bad.
+
+But let me just adjust
+this real quick anyway
+
+so that it's closer.
+
+All right, so this is a more
+optimal fit of this model.
+
+But something to
+note about this model
+
+is that I don't actually know if
+it represents the real dynamics
+
+of the system.
+
+All I know is that, for
+this particular input,
+
+the output behaves the same.
+
+The real test is if
+the behavior still
+
+matches, even under a
+different set of inputs.
+
+Which, again, is one of the
+benefits of a dynamic model
+
+over a simple curve fit.
+
+All right, so to show this,
+let me replace the step input
+
+with this new signal,
+which itself is just
+
+a series of different
+step inputs.
+
+And if I run that
+through the real system
+
+and through the model,
+we can see the result.
+
+And they match
+pretty well, but you
+
+can see that it's not perfect.
+
+So the real dynamics
+are more complex than
+
+a simple second order system.
+
+However, again, we're not
+trying to make a perfect model.
+
+We're just trying to model
+the essential dynamics.
+
+And if I'm happy with
+this amount of error,
+
+then the second order transfer
+function is still a good model.
+
+And if I'm not OK
+with this error,
+
+then I'd go back and maybe
+increase the model order
+
+or maybe change the model
+structure altogether.
+
+Now I made that
+sound kind of easy,
+
+but there are a ton of
+different model structures
+
+to choose from.
+
+For example, even within
+transfer functions,
+
+we can choose any number of
+poles and any number of zeros.
+
+And we can choose whether
+it's a continuous or discrete
+
+function.
+
+Or if we're trying to fit
+a model to vibration data,
+
+we might choose a
+frequency response model.
+
+And then we have to
+decide on the size
+
+of the parameters for it.
+
+Or we might develop a nonlinear
+model, like a nonlinear ARX
+
+model or a
+Hammerstein-Wiener model,
+
+which combine a linear
+and nonlinear component
+
+in either parallel or series.
+
+Or you may choose some other
+nonlinear representation,
+
+like a neural network,
+as well as many others.
+
+And with a purely
+black box method,
+
+you might not have any
+information about your system
+
+ahead of time.
+
+So how could you possibly
+choose the best model structure?
+
+Well, one approach
+is to just fit
+
+multiple models of various
+sizes to your data,
+
+and then check each of those
+against a new set of data
+
+to see which best
+suits your needs.
+
+In this way, it's kind of
+a trial and error approach
+
+to finding a model structure.
+
+However, often you're
+not approaching
+
+the system completely blind.
+
+You have some
+amount of knowledge
+
+that you can use to help you
+choose the right structure
+
+and develop the model.
+
+For example, if I knew
+that this was my system,
+
+I could figure out ahead
+of time that a second order
+
+model would be sufficient to
+capture the essential dynamics.
+
+And then I could use data
+and system identification
+
+to estimate the
+parameters of this model.
+
+Or I could even take
+it a step further
+
+and derive the
+differential equations
+
+with physical parameters,
+then fill in the values
+
+that I could easily
+measure, and then estimate
+
+the other parameters with data
+and system identification.
+
+This is called a
+gray box method,
+
+because it's a combination of
+using your detailed knowledge
+
+of the physics of the system
+to set up the initial problem,
+
+and then using data to learn the
+remaining portion of the model
+
+structure or parameter set.
+
+And this is the general
+idea behind all system
+
+identification methods.
+
+If you have access to
+good input output data
+
+that captures the behavior
+of the essential dynamics
+
+of your system, you can
+fit a model of your choice
+
+to that data using a numerical
+estimation technique.
+
+And building a model
+from data like this
+
+is a counterpart to deriving a
+model through first principles.
+
+Although, the two
+can be combined
+
+to give you the
+flexibility of picking some
+
+model parameters and the
+power to learn the others.
+
+All right, that's where I'm
+going to leave this video.
+
+For the rest of
+this series, we're
+
+going to expand on
+each of these ideas.
+
+So hopefully they'll
+make more sense.
+
+And we'll also
+show them in action
+
+with more practical examples.
+
+So if you don't want to miss
+that or any other TikTok video,
+
+don't forget to subscribe
+to this channel.
+
+And if you want to check out
+my channel, Control System
+
+Lectures, I cover more control
+theory topics there as well.
+
+Thanks for watching, and
+I'll see you next time.
+

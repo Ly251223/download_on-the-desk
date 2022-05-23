@@ -1,0 +1,1110 @@
+
+
+In the last video,
+we talked generally
+
+about what system identification is.
+
+So in this video let's put that knowledge to the test 
+and use system identification to fit a linear model to data
+in a more practical situation.
+
+I hope you stick around for it.
+
+I'm Brian, and welcome to a MATLAB Tech Talk.
+
+To begin, let's first look at the system identification workflow that we sort of
+laid out in the first video, but we'll make a little more concrete here.
+
+Since system identification is a data-driven method, the first thing we need is to set up an experiment or a test to collect that data from the real system.
+
+We then need to choose a model structure that we want to fit to that data, 
+which as we'll see, isn't necessarily a straightforward task.
+
+And then we need to identify
+that model by actually
+
+fitting it to the data.
+
+And this step is an
+optimization process
+
+where each of the free
+parameters in the model
+
+are tweaked in such a way as
+to minimize a cost function.
+
+In many cases, the cost function
+is a least squares problem,
+
+where we try to minimize the sum
+of the square of the difference
+
+between what the model predicts
+and what the real data is.
+
+And then, a gradient
+descent algorithm
+
+looks at how the cost changes
+as each free parameter is
+
+adjusted and then moves
+them in the direction that
+
+lowers the cost.
+
+Note that you may or may not
+achieve the desired results.
+
+The estimation process
+may end prematurely
+
+due to it finding
+a local minima,
+
+or it may appear too good to
+be true due to overfitting.
+
+So between that and having
+to choose a good model
+
+structure to begin with, we
+may not end up with a model
+
+that best fits the data.
+
+And so the next step is
+to validate the model
+
+and see how well it performs.
+
+And if the criteria
+is not met, you
+
+may need to gather more data
+or change the model structure
+
+or tweak the ID algorithm
+settings and try again.
+
+This trial-and-error
+process continues
+
+until the criteria is
+met, and you end up
+
+with a viable identified model.
+
+Let's walk through this workflow
+on a simple linear system
+
+identification
+example so that we
+
+have a baseline understanding
+that we can build on.
+
+And the first thing to do
+is to collect the data,
+
+and rather than get
+it from a real system,
+
+I'm just going to simulate a
+step response using a model.
+
+This model has a two pole and
+one zero transfer function
+
+with a 0.1 second transport
+delay on the input.
+
+So here, Greal, is
+what I'm considering
+
+to be the real system.
+
+And I can generate the input and
+output data using this system.
+
+That's this step input
+and step response.
+
+All right, so with
+data in hand, I
+
+can now choose a
+model structure that I
+
+want to fit to this data.
+
+And for this, I'm
+going to assume
+
+that I don't know what the
+real structure of the system
+
+is and just try to reason
+through what it should be.
+
+I can see that the
+response to a step input
+
+overshoots, which indicates
+at least second order.
+
+And I can see that there's a
+slight delay after the step
+
+before the response
+starts to move.
+
+So I'm going to use tfest
+to estimate a transfer
+
+function with two poles, no
+zeros, and an unknown delay
+
+time.
+
+This is the identification
+step, and it came back
+
+with this model.
+
+All right, now we can ask
+is this a valid model?
+
+And here I'm comparing the real
+data with the model response,
+
+and we can see that
+it's about an 81% match.
+
+And this fit percentage
+is the normalized root
+
+mean square error, which just
+shows how close the model
+
+response is to the
+measured response
+
+relative to the mean of
+the measured response.
+
+But even without
+this fit value, we
+
+can see that it doesn't quite
+look like the model structure
+
+I chose is capturing
+the right dynamics.
+
+And this was what I
+was talking about where
+
+if you choose a poor
+model structure,
+
+it won't fit to
+your data very well.
+
+And if you don't know what
+the structure should be ahead
+
+of time, then this can just
+be a trial-and-error process.
+
+So now I want to revisit
+the model structure
+
+and see if I can
+get a better fit.
+
+However, instead
+of just changing
+
+the number of poles
+and zeros in the model,
+
+let me show you
+something really cool
+
+that you can do by estimating
+a state based model instead.
+
+First, let's separate
+the delay part
+
+of the problem from
+the linear model part,
+
+and I can use delayest to
+estimate the number of samples
+
+that the output is
+delayed from the input.
+
+And then I'll just
+remove that delay
+
+from the output, so that
+everything lines up in time.
+
+Now, I use this aligned data to
+fit a state based model to it.
+
+But here is the cool part.
+
+Instead of choosing
+the model order myself,
+
+I can tell the function
+to fit multiple models,
+
+say between an
+order of one and 10,
+
+Basically doing that trial
+and error process for me.
+
+When I run this
+function, a window
+
+pops up that shows
+the Hankel singular
+
+values of each of the models,
+where lower values means
+
+that there is low
+energy in at least one
+
+of the states of the
+model and therefore
+
+is probability of a higher
+order than necessary to capture
+
+the dynamics.
+
+And we can see that it's
+showing that a second order
+
+model is actually perfectly
+fine for our data.
+
+But with state space
+representation,
+
+zeros come along as part of
+the package, which we left out
+
+of our transfer function model.
+
+So now I can select
+that second order model
+
+and get a state space equation.
+
+And I'm going to convert this
+back to a transfer function
+
+and add in the delay that
+we calculated earlier.
+
+And we arrive at the
+identified model of the system.
+
+And if I compare
+this with the data,
+
+we can see that it matches,
+well, almost perfectly.
+
+And in this case,
+it's pretty easy
+
+to tell that we
+identified a good model,
+
+but the only reason
+this was so easy
+
+was because the system
+we're identifying
+
+is perfectly linear with
+a pure transport delay.
+
+Plus, we were able to find
+the right model structure.
+
+And the data was not corrupted
+by noise or other disturbances,
+
+which is probably almost
+never the case in real life.
+
+So let's look at this
+exact same process again
+
+but with more realistic data.
+
+And I'm going to
+loosely follow along
+
+with this MATLAB
+example, which I've
+
+linked to in the description,
+and I recommend checking it out
+
+if you want to follow
+along with what I'm doing.
+
+But I'm going to use a
+slightly modified version of it
+
+in order to tell the story
+that I want for this video.
+
+For this example, we're going
+to fit a model to a heat
+
+exchanger.
+
+A heat exchanger, as
+the name suggests,
+
+exchanges heat between
+two different mediums,
+
+and in this case,
+there's a product
+
+like liquid in a tank
+whose temperature is
+
+affected by coolant pipes
+that coil through the tank.
+
+So the coolant temperature
+is the input into this system
+
+and that in turn affects
+the product temperature,
+
+which is the output.
+
+And the essential
+dynamics of this system
+
+can be modeled as a first
+order transfer function
+
+since the heat transfer rate
+from the product to the cooling
+
+coils is just a function of
+the temperature difference.
+
+Therefore, the change
+in product temperature
+
+is a function of the
+temperature itself,
+
+plus the temperature
+of the input.
+
+Now there is also delay in this
+system that comes from the fact
+
+that the coolant
+temperature sensor is
+
+some distance upstream
+from the heat exchanger,
+
+and when it registers
+a temperature change,
+
+it takes some time for that
+fluid to reach the product.
+
+So our candidate model structure
+is a first order transfer
+
+function plus a delay term.
+
+However, heat is also gained
+or lost to the environment
+
+and that is mostly based
+on the ambient temperature.
+
+And since we're not measuring
+the ambient temperature,
+
+we can treat this
+as a disturbance.
+
+The ambient temperature
+disturbance path
+
+is then in parallel with
+the main system dynamics.
+
+And this block diagram
+represents the model structure
+
+of our system.
+
+Now we want to try to fit
+this model to real data.
+
+So in this case, we were able
+to use physical intuition
+
+about the system to come up with
+the candidate model structure.
+
+This is the so-called
+gray box method.
+
+And if you're able
+to do this, it
+
+can simplify the workflow
+a lot because now you've
+
+lowered the likelihood of having
+to do trial and error to find
+
+the right structure.
+
+All right, well, we got a little
+out of order in the flow chart
+
+by selecting the
+structure first,
+
+but let's go back and
+collect the data now.
+
+I've loaded and two
+different data sets.
+
+The first is the
+measured data that we'll
+
+use to estimate the
+model which was collected
+
+from a series of step inputs.
+
+And the second
+data set is created
+
+from a different
+set of step inputs
+
+that we'll use to help
+validate the model.
+
+And notice how this isn't
+a perfect linear response,
+
+and this is going to
+make our linear model
+
+ID a little trickier to validate
+which we'll see shortly.
+
+Now just like before, we'll
+start by estimating the delay
+
+and then use tfest to
+fit a transfer function
+
+with one pole and no zeros.
+
+This was the candidate model
+structure that we came up with.
+
+And we've got a model.
+
+Now to validate this model,
+we can compare the real data
+
+with the model
+response, and this
+
+is the result. Now visually,
+it looks pretty close,
+
+but the fit is about 73%.
+
+And if we compare this model
+against the validation data,
+
+the fit is now about 62%.
+
+So the model is missing what
+looks like the high frequency
+
+content, as expected with
+the first order model.
+
+But maybe it's also missing some
+essential first order dynamics.
+
+It's a bit hard to
+say with this view.
+
+So the question might
+be is this the best
+
+we can do with a linear model?
+
+For example, would a
+different model structure
+
+better represent the data?
+
+And to figure that out we
+could try a higher order model.
+
+And if we didn't have
+that physical intuition
+
+about our system, that
+might be a good idea.
+
+But since we know heat
+transfer, in our problem,
+
+is fundamentally a first
+order linear process,
+
+I'm pretty confident that a
+first order plus dead time
+
+model structure is sufficient.
+
+And so with a higher
+order linear model,
+
+we just risk accidentally
+overfitting it
+
+to the training
+data and then doing
+
+even worse against
+the validation data.
+
+So at this point a
+better question might be,
+
+can we account for this
+unmodified part of the data
+
+in some way that
+gives us confidence
+
+that we modeled the
+linear part sufficiently?
+
+Well, it turns out that
+we can infer the answer
+
+or at least gain some
+insight into the answer.
+
+And one way is by assuming that
+the unmodeled response comes
+
+from some random noise or
+random disturbance process.
+
+Let's go back to
+this block diagram.
+
+What I'm saying is that we could
+try to model this disturbance
+
+path as Gaussian white
+noise that is being filtered
+
+in some way through a
+function, which then corrupts
+
+the output of the system.
+
+For example, the
+disturbance temperature
+
+that comes from the
+unknown ambient temperature
+
+might change slowly
+but fundamentally, it's
+
+changing in a random
+way that can be modeled
+
+as filtered white noise.
+
+And if that's the case,
+then we could simultaneously
+
+fit a model to both
+the essential dynamics
+
+of the system and
+to the disturbances.
+
+And by accounting for
+the disturbance path,
+
+we can gain more confidence
+in the model of the system
+
+dynamics.
+
+So how can we determine if
+our dynamics model is just
+
+plain wrong or if
+the data is just
+
+influenced by a random
+disturbance process
+
+or some combination of the two?
+
+Well, for one, we can use other
+model validation techniques
+
+to look to see if the
+errors are random in nature
+
+or if they are
+correlated in some way.
+
+And I've left a good
+link in the description
+
+to a resource that
+describes in detail
+
+the whiteness of the
+prediction residuals
+
+and the correlation between
+those residuals and the input
+
+into the system.
+
+So I'm not going to
+go into detail here.
+
+But for the sake of this video
+let me summarize quickly.
+
+All right, let's start
+with a set of data
+
+that we measured
+from a real system.
+
+This is the data that
+we want our model
+
+to be able to reproduce.
+
+So to see how well it does,
+we can initialize our model
+
+at the first data
+point and then predict
+
+what the output will
+be in the next step.
+
+And the difference between that
+prediction and the real data
+
+is the one step
+prediction residual.
+
+And let me plot this residual
+down in this second graph.
+
+We can now initialize the
+model at the second time step
+
+and predict another
+step into the future
+
+and get that residual.
+
+And we can do this one step
+prediction for the entire data
+
+sequence.
+
+Now, what we're left
+with is this series
+
+of residuals over time.
+
+And here's the interesting part.
+
+We can look at the
+autocorrelation
+
+of these residuals.
+
+That's the correlation
+with themselves.
+
+If the residual values are
+correlated with themselves
+
+in some way like we see
+here and a little bit here,
+
+then a part of the residual
+can't be chalked up
+
+to just random
+disturbances and noise
+
+and therefore could have been
+predicted from the past data.
+
+So we're probably
+missing some dynamics
+
+in our model
+somewhere that could
+
+have captured this behavior.
+
+Now on the other hand, instead
+of correlated residuals,
+
+let's say we got the model
+of the system perfect,
+
+but the output is
+corrupted by random noise
+
+or random disturbances.
+
+We can see that these
+random residuals are now
+
+not correlated at all.
+
+And this would indicate that
+the remaining non-model dynamics
+
+tend to be random
+in nature and not
+
+something that are linear
+model could capture.
+
+And therefore, we should
+account for these types
+
+of errors in some other way.
+
+Now.
+
+Another thing we can do to
+pinpoint our modeling troubles
+
+is to check to see if
+the residual values are
+
+cross correlated to
+the input in some way.
+
+Here I'm showing
+that the output was
+
+generated from this sort
+of impulse function.
+
+And now we can look to see if
+the residuals are correlated
+
+with this input.
+
+And there is some
+slight correlation here.
+
+But as we can see, it
+just about goes away
+
+when the residuals are random.
+
+And typically high
+cross correlation
+
+here means that there
+is a strong indication
+
+that the model that is mapping
+the input to the output
+
+is missing key dynamics since
+the prediction errors tend
+
+to correlate to the input.
+
+Therefore, in general if the
+residual error is correlated
+
+to the input, then
+we're missing something
+
+in our model in this
+path between the input
+
+in the output.
+
+And if that cross
+correlation is low,
+
+but the autocorrelation of the
+residuals themselves is high,
+
+then that typically means
+that we are not fully
+
+accounting for the
+disturbances in this path here.
+
+So by interpreting
+these two tests,
+
+you can gain some
+insight into where
+
+your model is lacking fidelity.
+
+And again, check
+the resources that I
+
+list in the description
+for a fuller
+
+explanation of all of this.
+
+All right, now if we go back
+to the heat exchanger example
+
+and look at these
+residual correlations,
+
+we see that the cross
+correlation with input is low,
+
+but the autocorrelation is high.
+
+So we can probably conclude
+that we're missing dynamics
+
+in the disturbance path and
+not in the system model.
+
+And to test this
+theory, I'm setting up
+
+a process model, which is the
+same first order plus dead time
+
+model, but it also includes
+a disturbance model
+
+which I'm going to fit to a
+first order autoregressive
+
+moving average or ARMA1 model.
+
+Basically it's
+Gaussian white noise
+
+that's been filtered through a
+one pole and one zero transfer
+
+function.
+
+And by fitting the dynamic
+model and the disturbance model
+
+at the same time, this
+is what we solved for.
+
+And now notice that the
+residuals are no longer
+
+correlated with themselves
+anywhere except at the point
+
+at zero lag, and the
+cross correlation
+
+is about zero across the board.
+
+So from this, we
+can conclude that we
+
+were able to fit the
+disturbance pretty well
+
+to an ARMA1 model,
+which then allowed
+
+us to fit a better first
+order plus dead time model
+
+to the dynamics.
+
+However, if we look
+at the comparison
+
+between this new model
+and the real data,
+
+it came back with
+about the same 73% fit.
+
+And furthermore, if we
+compare this new model
+
+with the validation
+data set, it still
+
+has a fit that is
+in the low 60%.
+
+So it doesn't seem like we've
+actually improved on our model
+
+by accounting for
+the disturbances.
+
+In fact, if we compare the
+new model with the model
+
+that we estimated
+without disturbances,
+
+you'll see that they're
+practically identical.
+
+So you might be
+wondering what was
+
+the point of estimating
+the disturbance at all
+
+if we got the same answer.
+
+Well, for one this
+might not always
+
+be the case with your data.
+
+The disturbances, in general,
+might have a stronger impact
+
+on the system dynamic
+estimate, and by accounting
+
+for the disturbances, this can
+improve the overall model fit.
+
+And two, even though
+it didn't change
+
+we now have a lot more
+confidence in this model
+
+since we were able to show low
+residual correlations once we
+
+accounted for the disturbances.
+
+So we've ended up
+with a model that we
+
+have a lot of confidence in,
+and we answered the question
+
+that about 60% to 70% fit is
+probably the best we can do.
+
+We can't get a better
+linear model fit
+
+because the external disturbance
+is contributing the rest
+
+of the dynamics to the output.
+
+All right, so I hope this
+video has given you some things
+
+to think about when you're using
+system identification to fit
+
+a linear model to
+your own noisy data
+
+and definitely check out this
+MATLAB example if you want
+
+to play around with
+these linear system
+
+identification techniques and
+learn a lot more about how they
+
+work.
+
+I've also posted my scripts if
+you want to see them as well.
+
+In the next video,
+we're going to look
+
+at the system identification
+process for non-linear systems.
+
+So if you don't
+want to miss that,
+
+don't forget to subscribe
+to this channel.
+
+And if you want to check out
+my channel, Control System
+
+Lectures, I cover more control
+theory topics there as well.
+
+Thanks for watching, and
+I'll see you next time.
+
